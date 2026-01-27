@@ -5,7 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowRight, Calendar, Clock, Users, Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+interface Appointment {
+  _id: string;
+  status: "completed" | "scheduled" | "waiting";
+  staffId: { _id: string } | string;
+}
+
+interface StaffMember {
+  _id: string;
+  name: string;
+  dailyCapacity: number;
+}
 
 interface DashboardData {
   totalAppointmentsToday: number;
@@ -32,44 +44,53 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [activityLogs, setActivityLogs] = useState<ActivityLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleLogout = () => {
     router.push("/login");
   };
 
-  useEffect(() => {
-    fetchDashboardData();
-    fetchActivityLogs(setActivityLogs);
-    const interval = setInterval(() => fetchActivityLogs(setActivityLogs), 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchDashboardData = async () => {
+  // Fetch dashboard data with parallel requests
+  const fetchDashboardData = useCallback(async () => {
     try {
+      setError(null);
       const today = new Date().toISOString().split("T")[0];
 
-      // Fetch today's appointments
-      const appointmentsRes = await fetch(`/api/appointments?date=${today}`);
-      if (!appointmentsRes.ok) {
-        if (appointmentsRes.status === 401) router.push("/login");
+      // Fetch appointments and staff in parallel
+      const [appointmentsRes, staffRes] = await Promise.all([
+        fetch(`/api/appointments?date=${today}`),
+        fetch("/api/staff"),
+      ]);
+
+      // Handle authentication errors
+      if (appointmentsRes.status === 401 || staffRes.status === 401) {
+        router.push("/login");
         return;
       }
-      const appointments = await appointmentsRes.json();
 
-      // Fetch staff
-      const staffRes = await fetch("/api/staff");
-      const staff = await staffRes.json();
+      // Check response status for both requests
+      if (!appointmentsRes.ok || !staffRes.ok) {
+        throw new Error("Failed to fetch dashboard data");
+      }
+
+      const [appointments, staff] = await Promise.all([
+        appointmentsRes.json() as Promise<Appointment[]>,
+        staffRes.json() as Promise<StaffMember[]>,
+      ]);
 
       // Calculate dashboard metrics
       const total = appointments.length;
-      const completed = appointments.filter((a: any) => a.status === "completed").length;
-      const pending = appointments.filter((a: any) => a.status === "scheduled").length;
-      const waiting = appointments.filter((a: any) => a.status === "waiting").length;
+      const completed = appointments.filter((a) => a.status === "completed").length;
+      const pending = appointments.filter((a) => a.status === "scheduled").length;
+      const waiting = appointments.filter((a) => a.status === "waiting").length;
 
       // Calculate staff load
-      const staffLoad = staff.map((s: any) => {
+      const staffLoad = staff.map((s) => {
         const scheduled = appointments.filter(
-          (a: any) => a.staffId?._id === s._id && a.status === "scheduled",
+          (a) =>
+            (typeof a.staffId === "string" ? a.staffId : a.staffId._id) === s._id &&
+            a.status === "scheduled",
         ).length;
         return {
           staffId: s._id,
@@ -86,24 +107,49 @@ export default function DashboardPage() {
         waitingQueueCount: waiting,
         staffLoad,
       });
-    } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to fetch dashboard data";
+      setError(message);
+      console.error("Dashboard fetch error:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
-  const fetchActivityLogs = async (setter: (logs: ActivityLogEntry[]) => void) => {
+  // Fetch activity logs with proper error handling
+  const fetchActivityLogs = useCallback(async () => {
     try {
       const res = await fetch("/api/activity-logs?limit=5");
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
       if (res.ok) {
-        const logs = await res.json();
-        setter(logs);
+        const logs = (await res.json()) as ActivityLogEntry[];
+        setActivityLogs(logs);
       }
     } catch (error) {
       console.error("Failed to fetch activity logs:", error);
     }
-  };
+  }, [router]);
+
+  // Setup initial load and polling
+  useEffect(() => {
+    fetchDashboardData();
+    fetchActivityLogs();
+
+    // Set up polling for activity logs
+    // intervalRef.current = setInterval(() => {
+    //   fetchActivityLogs();
+    // }, 5000);
+
+    // // Cleanup interval on unmount
+    // return () => {
+    //   if (intervalRef.current) {
+    //     clearInterval(intervalRef.current);
+    //   }
+    // };
+  }, [fetchDashboardData, fetchActivityLogs]);
 
   if (loading) {
     return (

@@ -83,7 +83,7 @@ export default function ServicesPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">Services Management</h1>
+          <h1 className="text-3xl font-bold text-primary">Services Management</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Define the services your business offers
           </p>
@@ -176,7 +176,7 @@ export default function ServicesPage() {
           <div className="grid md:grid-cols-2 gap-4">
             {services.map((service) => (
               <Card key={service._id} className="hover:shadow-md transition-shadow">
-                <CardContent className="pt-6">
+                <CardContent className="">
                   <h3 className="font-semibold text-lg mb-2">{service.name}</h3>
                   <div className="space-y-2 text-sm">
                     <p>

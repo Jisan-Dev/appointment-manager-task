@@ -5,6 +5,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import Loader from "@/components/ui/loader";
 import { AlertCircle, AlertTriangle, CheckCircle, Clock, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -38,6 +39,8 @@ export default function AppointmentsPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [assigning, setAssigning] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [filterDate, setFilterDate] = useState("");
   const [filterStaffId, setFilterStaffId] = useState("");
@@ -119,6 +122,11 @@ export default function AppointmentsPage() {
 
   const handleDeleteAppointment = async (appointmentId: string) => {
     if (!confirm("Are you sure you want to cancel this appointment?")) return;
+    setProcessingIds((prev) => {
+      const next = new Set(prev);
+      next.add(appointmentId);
+      return next;
+    });
 
     try {
       const res = await fetch(`/api/appointments/${appointmentId}`, {
@@ -127,7 +135,7 @@ export default function AppointmentsPage() {
 
       if (res.ok) {
         console.log("[v0] Appointment cancelled successfully");
-        fetchData();
+        await fetchData();
       } else {
         const error = await res.json();
         alert(`Failed to cancel appointment: ${error.error}`);
@@ -136,10 +144,22 @@ export default function AppointmentsPage() {
     } catch (error) {
       console.error("[v0] Failed to delete appointment:", error);
       alert("Failed to cancel appointment. Please try again.");
+    } finally {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(appointmentId);
+        return next;
+      });
     }
   };
 
   const handleCompleteAppointment = async (appointmentId: string) => {
+    setProcessingIds((prev) => {
+      const next = new Set(prev);
+      next.add(appointmentId);
+      return next;
+    });
+
     try {
       const res = await fetch(`/api/appointments/${appointmentId}`, {
         method: "PATCH",
@@ -149,7 +169,7 @@ export default function AppointmentsPage() {
 
       if (res.ok) {
         console.log("[v0] Appointment completed successfully");
-        fetchData();
+        await fetchData();
       } else {
         const error = await res.json();
         alert(`Failed to complete appointment: ${error.error}`);
@@ -158,10 +178,17 @@ export default function AppointmentsPage() {
     } catch (error) {
       console.error("[v0] Failed to update appointment:", error);
       alert("Failed to complete appointment. Please try again.");
+    } finally {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(appointmentId);
+        return next;
+      });
     }
   };
 
   const handleAssignFromQueue = async () => {
+    setAssigning(true);
     try {
       const res = await fetch("/api/queue/assign", {
         method: "POST",
@@ -170,13 +197,15 @@ export default function AppointmentsPage() {
 
       if (res.ok) {
         console.log("[v0] Queue assignment successful");
-        fetchData();
+        await fetchData();
       } else {
         const error = await res.json();
         alert(error.message || "No appointments in queue to assign");
       }
     } catch (error) {
       console.error("[v0] Failed to assign from queue:", error);
+    } finally {
+      setAssigning(false);
     }
   };
 
@@ -261,7 +290,7 @@ export default function AppointmentsPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">Appointments</h1>
+          <h1 className="text-3xl font-bold text-primary">Appointments</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Create, manage, and track customer appointments
           </p>
@@ -313,8 +342,16 @@ export default function AppointmentsPage() {
               <Button
                 onClick={handleAssignFromQueue}
                 className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+                disabled={assigning}
               >
-                Assign Next From Queue
+                {assigning ? (
+                  <>
+                    <Loader size="sm" className="mr-2" ariaLabel="Assigning" />
+                    Assigning...
+                  </>
+                ) : (
+                  "Assign Next From Queue"
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -543,8 +580,10 @@ export default function AppointmentsPage() {
                             size="sm"
                             onClick={() => handleCompleteAppointment(apt._id)}
                             className="gap-2"
+                            disabled={processingIds.has(apt._id)}
                           >
                             <CheckCircle className="w-4 h-4" />
+
                             {apt.status === "scheduled" ? "Complete" : "Assign & Complete"}
                           </Button>
                         )}
@@ -554,6 +593,7 @@ export default function AppointmentsPage() {
                             variant="destructive"
                             onClick={() => handleDeleteAppointment(apt._id)}
                             className="gap-2"
+                            disabled={processingIds.has(apt._id)}
                           >
                             <Trash2 className="w-4 h-4" />
                             Cancel

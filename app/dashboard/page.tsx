@@ -167,7 +167,7 @@ export default function DashboardPage() {
       <header className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <h1 className="text-3xl font-bold text-primary">Dashboard</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Welcome back. Here&#39;s your appointment overview.
             </p>
@@ -182,10 +182,12 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Today&#39;s Appointments</p>
+                  <p className="text-sm text-muted-foreground font-medium ">
+                    Today&#39;s Appointments
+                  </p>
                   <p className="text-3xl font-bold mt-2">{data?.totalAppointmentsToday || 0}</p>
                 </div>
-                <Calendar className="w-8 h-8 text-primary opacity-50" />
+                <Calendar className="w-8 h-8 text-primary opacity-85" />
               </div>
             </CardContent>
           </Card>
@@ -194,10 +196,10 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Pending</p>
+                  <p className="text-sm text-muted-foreground font-medium ">Pending</p>
                   <p className="text-3xl font-bold mt-2">{data?.pendingAppointments || 0}</p>
                 </div>
-                <Clock className="w-8 h-8 text-accent opacity-50" />
+                <Clock className="w-8 h-8 text-primary opacity-85" />
               </div>
             </CardContent>
           </Card>
@@ -206,10 +208,10 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Completed</p>
+                  <p className="text-sm text-muted-foreground font-medium ">Completed</p>
                   <p className="text-3xl font-bold mt-2">{data?.completedAppointments || 0}</p>
                 </div>
-                <Zap className="w-8 h-8 text-green-600 opacity-50" />
+                <Zap className="w-8 h-8 text-green-600 opacity-85" />
               </div>
             </CardContent>
           </Card>
@@ -218,7 +220,7 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">In Queue</p>
+                  <p className="text-sm text-muted-foreground font-medium ">In Queue</p>
                   <p className="text-3xl font-bold mt-2">{data?.waitingQueueCount || 0}</p>
                 </div>
                 <Users className="w-8 h-8 text-destructive opacity-50" />

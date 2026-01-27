@@ -68,7 +68,7 @@ export default function ActivityPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">Activity Logs</h1>
+          <h1 className="text-3xl font-bold text-primary">Activity Logs</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Track all appointment actions and status changes
           </p>

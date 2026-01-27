@@ -78,7 +78,7 @@ export default function StaffPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">Staff Management</h1>
+          <h1 className="text-3xl font-bold text-primary">Staff Management</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Add and manage your service staff members
           </p>
@@ -160,10 +160,10 @@ export default function StaffPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {staff.map((member) => (
               <Card key={member._id} className="hover:shadow-md transition-shadow">
-                <CardContent className="pt-6">
+                <CardContent className="">
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-semibold text-lg">{member.name}</h3>

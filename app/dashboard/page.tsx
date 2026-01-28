@@ -139,16 +139,16 @@ export default function DashboardPage() {
     fetchActivityLogs();
 
     // Set up polling for activity logs
-    // intervalRef.current = setInterval(() => {
-    //   fetchActivityLogs();
-    // }, 5000);
+    intervalRef.current = setInterval(() => {
+      fetchActivityLogs();
+    }, 5000);
 
-    // // Cleanup interval on unmount
-    // return () => {
-    //   if (intervalRef.current) {
-    //     clearInterval(intervalRef.current);
-    //   }
-    // };
+    // Cleanup interval on unmount
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, [fetchDashboardData, fetchActivityLogs]);
 
   if (loading) {

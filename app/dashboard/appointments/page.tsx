@@ -3,8 +3,26 @@
 import React from "react";
 
 import { deleteAppointment } from "@/actions/deleteAppointment";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import Loader from "@/components/ui/loader";
 import { AlertCircle, AlertTriangle, CheckCircle, Clock, Plus, Trash2 } from "lucide-react";
@@ -155,7 +173,6 @@ export default function AppointmentsPage() {
   };
 
   const handleDeleteCompletedAppointment = async (appointmentId: string) => {
-    if (!confirm("Are you sure you want to delete this completed appointment?")) return;
     setProcessingIds((prev) => {
       const next = new Set(prev);
       next.add(appointmentId);
@@ -331,69 +348,17 @@ export default function AppointmentsPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Manage Appointments</h2>
-          <Button onClick={() => setShowForm(!showForm)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            New Appointment
-          </Button>
-        </div>
-
-        {hasWaitingQueue && (
-          <Card className="mb-6 border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
-            <CardHeader>
-              <CardTitle className="text-lg text-yellow-800 dark:text-yellow-100">
-                Waiting Queue ({waitingAppointments.length})
-              </CardTitle>
-              <CardDescription className="text-yellow-700 dark:text-yellow-200">
-                Customers waiting for staff assignment
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 mb-4">
-                {waitingAppointments
-                  .sort(
-                    (a, b) =>
-                      new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime(),
-                  )
-                  .map((apt, idx) => (
-                    <div
-                      key={apt._id}
-                      className="flex justify-between items-center p-3 bg-white dark:bg-slate-900 rounded border border-yellow-200 dark:border-yellow-900"
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">
-                          {getOrdinalNumber(idx + 1)} - {apt.customerName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {apt.serviceId?.name} • {new Date(apt.appointmentDate).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-              <Button
-                onClick={handleAssignFromQueue}
-                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
-                disabled={assigning}
-              >
-                {assigning ? (
-                  <>
-                    <Loader size="sm" className="mr-2" ariaLabel="Assigning" />
-                    Assigning...
-                  </>
-                ) : (
-                  "Assign Next From Queue"
-                )}
+          <Dialog open={showForm} onOpenChange={setShowForm}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                New Appointment
               </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {showForm && (
-          <Card className="mb-6 border-primary/20">
-            <CardHeader>
-              <CardTitle>Create New Appointment</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Create New Appointment</DialogTitle>
+              </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -477,6 +442,57 @@ export default function AppointmentsPage() {
                   </Button>
                 </div>
               </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {hasWaitingQueue && (
+          <Card className="mb-6 border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
+            <CardHeader>
+              <CardTitle className="text-lg text-yellow-800 dark:text-yellow-100">
+                Waiting Queue ({waitingAppointments.length})
+              </CardTitle>
+              <CardDescription className="text-yellow-700 dark:text-yellow-200">
+                Customers waiting for staff assignment
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 mb-4">
+                {waitingAppointments
+                  .sort(
+                    (a, b) =>
+                      new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime(),
+                  )
+                  .map((apt, idx) => (
+                    <div
+                      key={apt._id}
+                      className="flex justify-between items-center p-3 bg-white dark:bg-slate-900 rounded border border-yellow-200 dark:border-yellow-900"
+                    >
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">
+                          {getOrdinalNumber(idx + 1)} - {apt.customerName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {apt.serviceId?.name} • {new Date(apt.appointmentDate).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+              <Button
+                onClick={handleAssignFromQueue}
+                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+                disabled={assigning}
+              >
+                {assigning ? (
+                  <>
+                    <Loader size="sm" className="mr-2" ariaLabel="Assigning" />
+                    Assigning...
+                  </>
+                ) : (
+                  "Assign Next From Queue"
+                )}
+              </Button>
             </CardContent>
           </Card>
         )}
@@ -624,16 +640,38 @@ export default function AppointmentsPage() {
                           </Button>
                         )}
                         {apt.status === "completed" && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteCompletedAppointment(apt._id)}
-                            className="gap-2"
-                            disabled={processingIds.has(apt._id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Delete
-                          </Button>
+                          <>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="gap-2"
+                                  disabled={processingIds.has(apt._id)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete your
+                                    account from our servers.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteCompletedAppointment(apt._id)}
+                                  >
+                                    Continue
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </>
                         )}
                         {apt.status !== "completed" && (
                           <Button

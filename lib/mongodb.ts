@@ -1,27 +1,25 @@
-import mongoose, { Connection } from "mongoose";
+import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
+type connectionObject = {
+  isConnected?: number;
+};
 
-if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable");
-}
+const connection: connectionObject = {};
 
-let cachedConnection: Connection | null = null;
-
-export async function connectToDatabase(): Promise<Connection> {
-  if (cachedConnection) {
-    return cachedConnection;
+export async function connectToDatabase(): Promise<void> {
+  if (connection?.isConnected) {
+    console.log("Already connected to database", connection?.isConnected);
+    return;
   }
 
   try {
-    const conn = await mongoose.connect(MONGODB_URI!, {
-      bufferCommands: false,
-    });
+    const db = await mongoose.connect(process.env.MONGODB_URI || "");
 
-    cachedConnection = conn.connection;
-    return cachedConnection;
+    connection.isConnected = db.connections[0].readyState;
+
+    console.log("Database connected successfully");
   } catch (error) {
-    console.error("Database connection error:", error);
-    throw error;
+    console.error("Error connecting to database", error);
+    process.exit(1);
   }
 }

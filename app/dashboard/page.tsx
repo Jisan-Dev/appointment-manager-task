@@ -116,25 +116,25 @@ export default function DashboardPage() {
     }
   }, [router]);
 
+  // Fetch activity logs with proper error handling
+  const fetchActivityLogs = useCallback(async () => {
+    try {
+      const res = await fetch("/api/activity-logs?limit=5");
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
+      if (res.ok) {
+        const logs = (await res.json()) as ActivityLogEntry[];
+        setActivityLogs(logs);
+      }
+    } catch (error) {
+      console.error("Failed to fetch activity logs:", error);
+    }
+  }, [router]);
+
   // Setup initial load and polling
   useEffect(() => {
-    // Fetch activity logs with proper error handling
-    const fetchActivityLogs = async () => {
-      try {
-        const res = await fetch("/api/activity-logs?limit=5");
-        if (res.status === 401) {
-          router.push("/login");
-          return;
-        }
-        if (res.ok) {
-          const logs = (await res.json()) as ActivityLogEntry[];
-          setActivityLogs(logs);
-        }
-      } catch (error) {
-        console.error("Failed to fetch activity logs:", error);
-      }
-    };
-
     fetchDashboardData();
     fetchActivityLogs();
 
@@ -149,7 +149,7 @@ export default function DashboardPage() {
     //     clearInterval(intervalRef.current);
     //   }
     // };
-  }, [fetchDashboardData, router]);
+  }, [fetchDashboardData, fetchActivityLogs]);
 
   if (loading) {
     return (

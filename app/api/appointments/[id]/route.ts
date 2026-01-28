@@ -73,7 +73,6 @@ export async function DELETE(request: NextRequest, props: { params: Promise<{ id
     }
 
     await Appointment.deleteOne({ _id: params.id });
-    console.log("aaaaaaa", appointment);
     // Log activity
     await ActivityLog.create({
       userId,

@@ -2,6 +2,7 @@
 
 import React from "react";
 
+import { deleteAppointment } from "@/actions/deleteAppointment";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -144,6 +145,36 @@ export default function AppointmentsPage() {
     } catch (error) {
       console.error("[v0] Failed to delete appointment:", error);
       alert("Failed to cancel appointment. Please try again.");
+    } finally {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(appointmentId);
+        return next;
+      });
+    }
+  };
+
+  const handleDeleteCompletedAppointment = async (appointmentId: string) => {
+    if (!confirm("Are you sure you want to delete this completed appointment?")) return;
+    setProcessingIds((prev) => {
+      const next = new Set(prev);
+      next.add(appointmentId);
+      return next;
+    });
+
+    try {
+      const result = await deleteAppointment(appointmentId);
+
+      if (result.success) {
+        console.log("[v0] Appointment deleted successfully");
+        await fetchData();
+      } else {
+        alert(`Failed to delete appointment: ${result.error}`);
+        console.error("[v0] Delete error:", result.error);
+      }
+    } catch (error) {
+      console.error("[v0] Failed to delete appointment:", error);
+      alert("Failed to delete appointment. Please try again.");
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -539,7 +570,7 @@ export default function AppointmentsPage() {
                     apt.status === "waiting" ? "border-yellow-300" : ""
                   }`}
                 >
-                  <CardContent className="pt-6">
+                  <CardContent>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">{apt.customerName}</h3>
@@ -590,6 +621,18 @@ export default function AppointmentsPage() {
                             <CheckCircle className="w-4 h-4" />
 
                             {apt.status === "scheduled" ? "Complete" : "Assign & Complete"}
+                          </Button>
+                        )}
+                        {apt.status === "completed" && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteCompletedAppointment(apt._id)}
+                            className="gap-2"
+                            disabled={processingIds.has(apt._id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete
                           </Button>
                         )}
                         {apt.status !== "completed" && (

@@ -140,7 +140,6 @@ export default function AppointmentsPage() {
   };
 
   const handleDeleteAppointment = async (appointmentId: string) => {
-    if (!confirm("Are you sure you want to cancel this appointment?")) return;
     setProcessingIds((prev) => {
       const next = new Set(prev);
       next.add(appointmentId);
@@ -674,16 +673,34 @@ export default function AppointmentsPage() {
                           </>
                         )}
                         {apt.status !== "completed" && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteAppointment(apt._id)}
-                            className="gap-2"
-                            disabled={processingIds.has(apt._id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Cancel
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                className="gap-2"
+                                disabled={processingIds.has(apt._id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Cancel
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete your
+                                  account from our servers.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteAppointment(apt._id)}>
+                                  Continue
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
                       </div>
                     </div>

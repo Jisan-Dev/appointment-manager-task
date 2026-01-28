@@ -160,7 +160,12 @@ export default function ServicesPage() {
         )}
 
         {loading ? (
-          <div className="text-center py-8">Loading services...</div>
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading Services...</p>
+            </div>
+          </div>
         ) : services.length === 0 ? (
           <Card>
             <CardContent className="py-12">

@@ -55,8 +55,8 @@ export default function DashboardPage() {
   const fetchDashboardData = useCallback(async () => {
     try {
       setError(null);
-      const today = new Date().toISOString().split("T")[0];
-
+      const today = new Date().toISOString();
+      console.log(today);
       // Fetch appointments and staff in parallel
       const [appointmentsRes, staffRes] = await Promise.all([
         fetch(`/api/appointments?date=${today}`),
@@ -243,7 +243,7 @@ export default function DashboardPage() {
                     {data.staffLoad.map((staff) => (
                       <div key={staff.staffId}>
                         <div className="flex justify-between mb-2">
-                          <span className="font-medium">{staff.name}</span>
+                          <span className="font-medium capitalize">{staff.name}</span>
                           <span className="text-sm text-muted-foreground">
                             {staff.scheduled} / {staff.capacity}
                           </span>

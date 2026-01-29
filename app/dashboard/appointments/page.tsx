@@ -588,7 +588,7 @@ export default function AppointmentsPage() {
                   <CardContent>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{apt.customerName}</h3>
+                        <h3 className="font-semibold text-lg capitalize">{apt.customerName}</h3>
                         <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
                           <div>
                             <p className="text-muted-foreground">Service</p>
@@ -598,7 +598,7 @@ export default function AppointmentsPage() {
                           </div>
                           <div>
                             <p className="text-muted-foreground">Staff</p>
-                            <p className="font-medium">
+                            <p className="font-medium capitalize">
                               {apt.staffId?.name || "Waiting assignment"}
                             </p>
                           </div>

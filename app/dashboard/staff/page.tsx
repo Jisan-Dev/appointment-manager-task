@@ -171,7 +171,7 @@ export default function StaffPage() {
                 <CardContent className="">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-semibold text-lg">{member.name}</h3>
+                      <h3 className="font-semibold text-lg capitalize">{member.name}</h3>
                       <p className="text-sm text-muted-foreground">{member.serviceType}</p>
                       <p className="text-sm mt-2">
                         Daily Capacity: <span className="font-medium">{member.dailyCapacity}</span>
